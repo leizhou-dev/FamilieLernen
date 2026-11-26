@@ -5,7 +5,7 @@ import { course } from '../registry.js';
 import { t, tr } from '../i18n.js';
 import { h, go, put, chip, group, row, segmented, barMeter, iconTile, ico, backLink, pageHeader } from '../ui.js';
 import { loadCourse, loadUnit, hasItems, unitHasContent } from '../content.js';
-import { avatarButton } from './common.js';
+import { avatarButton, rewardPills } from './common.js';
 
 const TYPE = {
   vocab: ['textformat', 'var(--blue)'],
@@ -41,6 +41,7 @@ export async function renderCourseHome(root, id) {
 
   put(root, 'append',
     pageHeader(tr(reg.title), { sub: tr(reg.desc), leading: backLink('#/courses', t('nav.courses')), trailing: avatarButton() }),
+    rewardPills(),
     enrolled && pos?.activityId
       ? h('button', { type: 'button', class: 'primary big', 'data-continue': id, onclick: () => go(`#/play/${id}/${pos.unitId}/${pos.activityId}`) },
           ico('play', 18, 2.2), t('common.continue'), h('span', { class: 'btn-sub' }, pos.activityTitle))

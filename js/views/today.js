@@ -3,7 +3,7 @@ import { visibleCourses, course } from '../registry.js';
 import { t, tr, getLang } from '../i18n.js';
 import { h, go, put, ico, iconTile, group, row } from '../ui.js';
 import { continueCourse, whereLabel, courseHref, kindLabel } from '../nav.js';
-import { header, courseTile } from './common.js';
+import { header, courseTile, rewardPills } from './common.js';
 import { matheWrongCount } from './mathe.js';
 
 const LOCALE = { zh: 'zh-CN', en: 'en-GB', de: 'de-DE' };
@@ -32,6 +32,7 @@ export function renderToday(root) {
 
   put(root, 'append',
     header(t('today.hello', { name: p.name }), { sub: date }),
+    rewardPills(),
     h('div', { class: 'widget-grid' },
       recent
         ? widget({

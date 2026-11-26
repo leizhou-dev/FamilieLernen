@@ -53,10 +53,12 @@ function grade(kind, w, ok, mode) {
   d.log.push({ t: Date.now(), m: mode, w: w.id, ok: ok ? 1 : 0 });
   if (d.log.length > 6000) d.log.splice(0, d.log.length - 6000);
   if (!d.days.includes(today())) d.days.push(today());
-  if (ok) addStars(1);
+  if (ok) addStars(1); else FAM?.day();
   save();
 }
-function addStars(n) { P().stars += n; }
+// Sterne und Tage in Folge gelten in „Familie lernt“ für alle Kurse gemeinsam
+let FAM = null;
+function addStars(n) { P().stars += n; if (FAM) { FAM.add(n); P().stars = FAM.get().stars; } }
 function logRound(mode, ok, total) {
   P().rounds.push({ t: Date.now(), m: mode, ok, n: total });
   if (P().rounds.length > 500) P().rounds.shift();
@@ -650,6 +652,7 @@ function regeln() {
 
 /* ---------- Fortschritt ---------- */
 function streak() {
+  if (FAM) return FAM.get().streak;
   const set = new Set(P().days); let n = 0; let d = new Date();
   if (!set.has(today())) d = new Date(Date.now() - DAY);
   while (set.has(d.toISOString().slice(0, 10))) { n++; d = new Date(d - DAY); }
@@ -1114,6 +1117,9 @@ import(new URL('../../js/bridge.js', document.baseURI).href).then(b => b.enter('
   if (p) Object.assign(p, { name: fp.name, avatar: fp.avatar }); else S.profiles.push({ id: fp.id, name: fp.name, avatar: fp.avatar });
   if (!S.data[fp.id]) S.data[fp.id] = newData();
   S.current = fp.id;
+  FAM = ctx.rewards;
+  FAM.seed(P().stars || 0, P().days || []); // bisherige Sterne/Tage einmalig übernehmen
+  P().stars = FAM.get().stars;
   save(); pickVoice(); applyColors();
   if (!location.hash || location.hash === '#profile') location.replace('#home');
   render();

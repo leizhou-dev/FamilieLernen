@@ -214,3 +214,11 @@ body.fullscreen .shell .sticky-bottom { bottom: calc(16px + env(safe-area-inset-
 .m-step { font-weight: 600; }
 .m-follow { margin: 0; }
 @media (max-width: 420px) { .m-line { font-size: 20px; } .m-in { font-size: 20px; } }
+
+/* ---------- Sterne & Tage in Folge (alle Kurse) ---------- */
+.reward-pills { display: flex; gap: 8px; flex-wrap: wrap; margin: -4px 0 14px; }
+.reward-pills .pill { font-size: 17px; padding: 7px 14px; font-variant-numeric: tabular-nums; }
+.reward-pills .flame { display: flex; color: var(--orange); }
+.result .reward-pills { justify-content: center; margin: 8px 0 0; }
+.reward-line { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.fb-title .star-gain { margin-left: auto; font-size: 14px; }

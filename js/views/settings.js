@@ -14,7 +14,7 @@ export function openSwitcher() {
   let close;
   const body = h('div', {},
     group(null, S.profiles().map((p) => row({
-      icon: avatar(p, 'md'), title: p.name, sub: t('lang.' + p.uiLang),
+      icon: avatar(p, 'md'), title: p.name, sub: `★ ${S.rewards(p.id).stars} · ${t('rw.days', { n: S.rewards(p.id).streak })}`,
       detail: p.id === cur.id ? ico('check', 20, 2.6, 'accent-ico') : null,
       onClick: () => { S.setCurrent(p.id); close(); }, cls: p.id === cur.id ? 'row-on' : '', attrs: { 'data-profile': p.id },
     }))),

@@ -24,5 +24,12 @@ export async function enter(courseId) {
     profile: { id: p.id, name: p.name, avatar: p.avatar, color: p.color, uiLang: p.uiLang },
     file: V.file,
     familyHome: FAMILY_HOME,
+    // 星星和连续天数：全家统一，覆盖所有课程
+    rewards: {
+      add: (n) => S.addStars(n, courseId, p.id),
+      day: () => S.markDay(courseId, p.id),
+      seed: (stars, days) => S.seedRewards(courseId, stars, days, p.id),
+      get: () => S.rewards(p.id),
+    },
   };
 }

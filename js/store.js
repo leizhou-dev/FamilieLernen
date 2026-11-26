@@ -54,9 +54,29 @@ export function load() {
     state = defaults();
   }
   state.noDefaults = true;
+  seedNative();
   if (!state.profiles.find((p) => p.id === state.lastProfileId)) state.lastProfileId = state.profiles[0]?.id || null;
   save(true);
   return state;
+}
+
+// 更新前已有的德语 / Mathe 记录：按答对次数补上星星，按答题日期补上学习日（每门课只补一次）
+function seedNative() {
+  for (const p of state.profiles) {
+    const r = rewardsOf(p.id);
+    if (r.nativeSeeded) continue; // 只在引入星星功能时执行一次
+    r.nativeSeeded = Date.now();
+    const pr = state.progress[p.id] || {};
+    for (const [cid, c] of Object.entries(pr)) {
+      if (r.seeded[cid] || cid === 'artikel' || cid === 'latein') continue;
+      let stars = 0; const days = new Set();
+      for (const a of Object.values(c.answers || {})) { if (a.ok) stars++; if (a.at) days.add(dayKey(a.at)); }
+      for (const o of Object.values(c.open || {})) if (o.at) days.add(dayKey(o.at));
+      if (c.mathe) for (const st of Object.values(c.mathe.stats || {})) stars += Math.round(st.final || 0);
+      if (stars || days.size) { r.seeded[cid] = Date.now(); r.stars += stars; r.byCourse[cid] = (r.byCourse[cid] || 0) + stars; days.forEach((d) => { r.days[d] = (r.days[d] || 0) + 1; }); }
+      else r.seeded[cid] = Date.now();
+    }
+  }
 }
 
 export function save(silent = false) {
@@ -81,6 +101,7 @@ export function addProfile(name, { avatar, color, uiLang } = {}) {
   const p = makeProfile(name, avatar || AVATARS[i % AVATARS.length], color || COLORS[i % COLORS.length], uiLang || current()?.uiLang || deviceLang());
   state.profiles.push(p);
   state.lastProfileId = p.id;
+  rewardsOf(p.id).nativeSeeded = Date.now();
   save();
   return p;
 }
@@ -144,6 +165,7 @@ export function markDone(courseId, activityId) {
 
 /** 记录一题答案；ref = {unitId, activityId} */
 export function recordAnswer(courseId, itemId, ok, ref, fromReview = false) {
+  addStars(ok ? 1 : 0, courseId);
   const pr = progress(courseId);
   pr.answers[itemId] = { ok, at: now() };
   if (!ok) {
@@ -157,6 +179,7 @@ export function recordAnswer(courseId, itemId, ok, ref, fromReview = false) {
 }
 
 export function recordOpen(courseId, itemId, text, ref) {
+  markDay(courseId);
   const pr = progress(courseId);
   pr.open[itemId] = { text, at: now(), ...ref };
   save(true);
@@ -172,6 +195,62 @@ export function toggleFav(courseId, itemId, ref) {
 
 export function openWrong(courseId, pid = current().id) {
   return Object.entries(progress(courseId, pid).wrong).filter(([, w]) => !w.resolved).map(([id, w]) => ({ id, ...w }));
+}
+
+/* ---------- 星星与连续学习天数（按家庭档案，覆盖所有课程） ----------
+   规则（与 Artikel lernen / Latein lernen 相同）：答对 1 颗星，一整轮全对再奖励 3 颗；
+   当天做过任何练习就算一个学习日。新课程只需调用 addStars / markDay。 */
+export function dayKey(t = Date.now()) {
+  const d = new Date(t);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function rewardsOf(pid) {
+  const all = (state.rewards ||= {});
+  return (all[pid] ||= { stars: 0, days: {}, byCourse: {}, seeded: {} });
+}
+export function markDay(courseId, pid = current()?.id) {
+  if (!pid) return;
+  const r = rewardsOf(pid); const k = dayKey();
+  r.days[k] = (r.days[k] || 0) + 1;
+  save(true);
+}
+export function addStars(n, courseId, pid = current()?.id) {
+  if (!pid) return;
+  const r = rewardsOf(pid);
+  if (n > 0) { r.stars += n; r.byCourse[courseId] = (r.byCourse[courseId] || 0) + n; }
+  r.days[dayKey()] = (r.days[dayKey()] || 0) + 1;
+  save(true);
+}
+/** 已有进度（更新前积累的星星和学习日）只计入一次 */
+export function seedRewards(courseId, stars, days = [], pid = current()?.id) {
+  if (!pid) return false;
+  const r = rewardsOf(pid);
+  if (r.seeded[courseId]) return false;
+  r.seeded[courseId] = Date.now();
+  addRewardsRaw(stars, days, courseId, pid);
+  return true;
+}
+/** 直接加入星星和学习日（例如从原 App 导入时） */
+export function addRewardsRaw(stars, days = [], courseId = 'import', pid = current()?.id) {
+  const r = rewardsOf(pid);
+  const n = Math.max(0, Math.round(stars || 0));
+  r.stars += n; r.byCourse[courseId] = (r.byCourse[courseId] || 0) + n;
+  for (const d of days) if (/^\d{4}-\d{2}-\d{2}$/.test(d)) r.days[d] = (r.days[d] || 0) + 1;
+  save(true);
+}
+export function streak(pid = current()?.id) {
+  if (!pid) return 0;
+  const days = rewardsOf(pid).days;
+  const d = new Date();
+  if (!days[dayKey(d.getTime())]) d.setDate(d.getDate() - 1); // 今天还没练：从昨天算起
+  let n = 0;
+  while (days[dayKey(d.getTime())]) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+export function rewards(pid = current()?.id) {
+  if (!pid) return { stars: 0, streak: 0, today: 0 };
+  const r = rewardsOf(pid);
+  return { stars: r.stars, streak: streak(pid), today: r.days[dayKey()] || 0, byCourse: { ...r.byCourse } };
 }
 
 /* ---------- 备份 ---------- */

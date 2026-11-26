@@ -166,6 +166,9 @@ export function importArtikel(oldEntry, pid) {
   s.data[pid] = structuredClone(oldEntry.data);
   localStorage.setItem(ART_NEW, JSON.stringify(s));
   S.addCourse('artikel', {}, pid);
+  // Sterne und Übungstage zählen in der Familien-Wertung (genau einmal)
+  const d = oldEntry.data;
+  if (!S.seedRewards('artikel', d.stars || 0, d.days || [], pid)) S.addRewardsRaw(d.stars || 0, d.days || [], 'artikel', pid);
 }
 
 export async function importLatein(v, pid) {
@@ -173,4 +176,6 @@ export async function importLatein(v, pid) {
   await idbPutAll(db, { progress: v.progress, settings: v.settings, stats: v.stats });
   db.close();
   S.addCourse('latein', {}, pid);
+  const days = Object.keys(v.stats?.days || {});
+  if (!S.seedRewards('latein', v.stats?.stars || 0, days, pid)) S.addRewardsRaw(v.stats?.stars || 0, days, 'latein', pid);
 }

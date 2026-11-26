@@ -6,6 +6,7 @@ import { t, tr, pickExplain } from '../i18n.js';
 import { h, go, put, toast, ico, chip, navBar, progressTrack, group, row } from '../ui.js';
 import { loadUnit, hasItems, findItems } from '../content.js';
 import { typeTile, typeIconName } from './structured.js';
+import { rewardPills, starGain } from './common.js';
 
 const GRADED = new Set(['card', 'recall', 'choice', 'input']);
 const norm = (s) => String(s).trim().replace(/\s+/g, ' ').replace(/[.!?。]+$/, '');
@@ -87,7 +88,7 @@ function explainBlock(explain) {
 
 function feedback(ok, answer, explain) {
   return h('div', { class: 'feedback ' + (ok ? 'ok' : 'no'), 'data-result': ok ? 'ok' : 'bad' },
-    h('div', { class: 'fb-title' }, ico(ok ? 'checkCircle' : 'xmark', 24, 2.2), ok ? t('play.correct') : t('play.wrong')),
+    h('div', { class: 'fb-title' }, ico(ok ? 'checkCircle' : 'xmark', 24, 2.2), ok ? t('play.correct') : t('play.wrong'), ok ? starGain(1) : null),
     ok ? null : h('p', {}, t('play.answerIs', { a: answer })),
     explainBlock(explain));
 }
@@ -258,12 +259,16 @@ function runSession(root, { title, icon, entries, startIndex = 0, closeHref, fro
   let finishActions = () => null;
   const finish = () => {
     onFinish?.();
+    const perfect = graded > 0 && correct === graded;
+    if (perfect) S.addStars(3, entries[0].courseId); // 整轮全对奖励
     S.save(true);
     bar.replaceChildren(navBar({ leading: close(), center: h('div', { class: 'nb-progress' }, h('span', { class: 'nb-title' }, title), progressTrack(1)) }));
     put(body, 'replaceChildren', h('div', { class: 'result', 'data-finished': '' },
       h('div', { class: 'big-emoji' }, '🎉'),
       h('h2', {}, fromReview ? t('review.done') : t('play.finished')),
       graded ? h('p', { class: 'muted' }, t('play.score', { a: correct, b: graded })) : null,
+      graded ? h('div', { class: 'reward-line' }, starGain(correct + (perfect ? 3 : 0)), perfect ? h('span', { class: 'muted small' }, t('rw.bonus')) : null) : null,
+      rewardPills(),
       h('div', { class: 'result-actions' }, finishActions())));
   };
   show();

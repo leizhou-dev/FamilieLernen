@@ -4,7 +4,7 @@
 import * as S from '../store.js';
 import { t, tr, getLang } from '../i18n.js';
 import { h, go, put, group, row, chip, iconTile, ico, navBar, progressTrack, segmented, backLink, pageHeader } from '../ui.js';
-import { avatarButton } from './common.js';
+import { avatarButton, rewardPills, starGain } from './common.js';
 import { course } from '../registry.js';
 import { SKILLS, LEVELS, skill, session, regenerate, template } from '../mathe/templates.js';
 import { grade, TAGS } from '../mathe/grade.js';
@@ -24,6 +24,7 @@ function saveResult(item, res, { review = false, hints = 0 } = {}) {
   st.n++; st.final += res.finalScore;
   if (res.processScore != null) { st.process += res.processScore; st.processN++; }
   for (const tag of res.tags) m.tags[tag] = (m.tags[tag] || 0) + 1;
+  S.addStars(res.finalOk ? 1 : 0, 'mathe'); // 星星与学习日：全家统一
   if (res.allOk && hints < 3) delete m.wrong[item.id];
   else if (!res.allOk) m.wrong[item.id] = { templateId: item.templateId, level: item.difficulty, params: item.parameters, seed: item.seed, at: Date.now(), tags: res.tags };
   if (!review) {
@@ -44,6 +45,7 @@ export function renderMatheHome(root) {
   const focus = topTags(3);
   put(root, 'append',
     pageHeader(tr(reg.title), { sub: t('m.sub'), leading: backLink('#/courses', t('nav.courses')), trailing: avatarButton() }),
+    rewardPills(),
     h('div', { class: 'widget-grid' },
       widget({ hero: true, icon: 'sparkles', title: t('m.mix'), sub: t('m.mixSub'), cta: t('common.start'), href: '#/mathe/play/mix', attr: 'mix' }),
       widget({ icon: 'target', color: 'var(--orange)', title: t('m.focus'), sub: focus.length ? focus.map((x) => tagName(x[0])).join(' · ') : t('m.focusNone'), href: focus.length ? '#/mathe/play/focus' : null, attr: 'focus' }),
@@ -186,12 +188,16 @@ function runRound(root, { items, title, review, back }) {
       hintBox, actions, after);
   };
   const finish = () => {
+    const perfect = total > 0 && finals === total;
+    if (perfect) S.addStars(3, 'mathe');
     S.save(true);
     bar.replaceChildren(navBar({ leading: h('a', { class: 'glass-btn', href: back }, ico('xmark', 20, 2.2)), center: h('div', { class: 'nb-progress' }, h('span', { class: 'nb-title' }, title), progressTrack(1)) }));
     put(body, 'replaceChildren', h('div', { class: 'result', 'data-mfinished': '' },
       h('div', { class: 'big-emoji' }, finals === total ? '🏆' : '🎉'),
       h('h2', { lang: 'de' }, 'Geschafft!'),
       h('p', { class: 'muted' }, t('m.result', { a: finals, b: total })),
+      h('div', { class: 'reward-line' }, starGain(finals + (perfect ? 3 : 0)), perfect ? h('span', { class: 'muted small' }, t('rw.bonus')) : null),
+      rewardPills(),
       h('div', { class: 'result-actions' },
         h('a', { class: 'primary big', href: back }, t('common.done')))));
   };
@@ -222,7 +228,7 @@ function feedback(item, res, hints) {
   const proc = res.processScore;
   return h('div', { class: 'feedback ' + (res.allOk ? 'ok' : res.finalOk ? 'almost' : 'no'), 'data-mresult': res.allOk ? 'ok' : res.finalOk ? 'almost' : 'bad' },
     h('div', { class: 'fb-title', lang: 'de' }, ico(res.allOk ? 'checkCircle' : res.finalOk ? 'checkCircle' : 'xmark', 24, 2.2),
-      res.allOk ? 'Richtig!' : res.finalOk ? 'Ergebnis richtig – schau dir den Rechenweg an.' : 'Noch nicht ganz.'),
+      res.allOk ? 'Richtig!' : res.finalOk ? 'Ergebnis richtig – schau dir den Rechenweg an.' : 'Noch nicht ganz.', res.finalOk ? starGain(1) : null),
     h('div', { class: 'm-scores' },
       chip(`${t('m.final')}: ${res.finalScore === 1 ? '✓' : Math.round(res.finalScore * 100) + ' %'}`, res.finalScore === 1 ? 'okc' : 'warn'),
       proc != null ? chip(`${t('m.process')}: ${Math.round(proc * 100)} %`, proc === 1 ? 'okc' : 'warn') : null,
