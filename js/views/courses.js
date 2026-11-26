@@ -58,14 +58,15 @@ export function renderCourseDetail(root, id) {
     !enrolled ? h('button', { type: 'button', class: 'primary big', 'data-add': id, onclick: () => S.addCourse(id) }, t('common.add')) : null,
   );
 
-  if (c.kind === 'external') {
+  if (c.kind === 'external' || c.kind === 'embedded') {
+    const emb = c.kind === 'embedded';
     put(root, 'append',
-      h('button', { type: 'button', class: 'primary big', 'data-open': c.id, onclick: () => openExternal(c) }, ico('share', 20, 2.2), t('ext.main')),
+      h('button', { type: 'button', class: 'primary big', 'data-open': c.id, onclick: () => openExternal(c) }, ico(emb ? 'play' : 'share', 20, 2.2), emb ? t('common.continue') : t('ext.main')),
       c.entries?.length ? group(t('ext.entries'), c.entries.map((e) => row({
         icon: h('span', { class: 'icon-tile', style: { background: c.color, width: '30px', height: '30px' } }, ico(e.icon, 19, 2)),
         title: tr(e.title), chev: true, onClick: () => openExternal(c, e.path), attrs: { 'data-entry': e.id },
       }))) : null,
-      h('p', { class: 'group-footer' }, t('ext.note')));
+      h('p', { class: 'group-footer' }, t(emb ? 'emb.note' : 'ext.note')));
   } else if (c.kind === 'mac') {
     put(root, 'append', group(null, [
       row({ title: t('mac.note'), sub: !isMac ? t('mac.notOnMac') : null }),

@@ -134,3 +134,16 @@ body.fullscreen .shell .sticky-bottom { bottom: calc(16px + env(safe-area-inset-
 .unlock form > p { margin: 0 0 6px; }
 .unlock .err:empty { display: none; }
 .install-hint { margin-top: 18px; line-height: 1.45; }
+
+/* ---------- 口语 1000 句 ---------- */
+.stage-desc { padding: 16px 20px; margin-bottom: 4px; }
+.stage-desc p { white-space: pre-line; color: var(--label-2); font-size: 15px; line-height: 1.55; margin: 0; }
+.flashcard.recall { min-height: 260px; }
+.recall-prompt { font-size: 26px; line-height: 1.35; }
+.recall-answer { font-size: 26px; line-height: 1.35; }
+.flashcard.recall .back .q-sub { font-size: 15px; }
+
+/* ---------- 导入 ---------- */
+.import-sheet .row select { max-width: 46vw; }
+.import-sheet .group-footer span { line-height: 1.5; }
+.import-none { margin: 8px 4px 0; line-height: 1.5; }

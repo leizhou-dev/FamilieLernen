@@ -7,7 +7,7 @@ import { h, go, put, toast, ico, chip, navBar, progressTrack, group, row } from 
 import { loadUnit, hasItems, findItems } from '../content.js';
 import { typeTile, typeIconName } from './structured.js';
 
-const GRADED = new Set(['card', 'choice', 'input']);
+const GRADED = new Set(['card', 'recall', 'choice', 'input']);
 const norm = (s) => String(s).trim().replace(/\s+/g, ' ').replace(/[.!?。]+$/, '');
 
 /* ---------- 朗读 / 录音 ---------- */
@@ -113,6 +113,29 @@ function renderItem(item, activity, saved, answered) {
     put(wrap, 'append', card,
       h('div', { class: 'center' }, h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Vorlesen', onclick: () => speak(item.front) }, ico('speaker', 20, 2))),
       actions);
+  }
+
+  else if (item.kind === 'recall') {
+    // 口语背诵：看中文提示 → 开口说德语 → 翻卡对照并听朗读 → 自评
+    const prompt = pickExplain(item.prompt, S.current().explainLang) || { text: '' };
+    const card = h('button', { type: 'button', class: 'flashcard recall', 'data-flip': '' },
+      h('div', { class: 'face front' },
+        h('span', { class: 'q-main recall-prompt', lang: prompt.lang === 'zh' ? 'zh-Hans' : prompt.lang }, prompt.text),
+        h('span', { class: 'q-sub' }, t('play.sayFirst'))),
+      h('div', { class: 'face back' },
+        h('span', { class: 'q-sub' }, prompt.text),
+        h('span', { class: 'q-main recall-answer', lang: 'de' }, item.answer)));
+    const actions = h('div', { class: 'two', hidden: true },
+      h('button', { type: 'button', class: 'bad', 'data-grade': 'no', onclick: () => { lock(); answered(false); } }, ico('repeat', 20, 2.4), t('play.practiceAgain')),
+      h('button', { type: 'button', class: 'good', 'data-grade': 'yes', onclick: () => { lock(); answered(true); } }, ico('check', 20, 2.4), t('play.saidIt')));
+    const lock = () => actions.querySelectorAll('button').forEach((b) => (b.disabled = true));
+    const listen = h('button', { type: 'button', class: 'secondary', hidden: true, onclick: () => speak(item.answer) }, ico('speaker', 20, 2), t('play.listen'));
+    card.onclick = () => {
+      const flipped = card.classList.toggle('flipped');
+      actions.hidden = false; listen.hidden = false;
+      if (flipped) speak(item.answer);
+    };
+    put(wrap, 'append', card, h('div', { class: 'center' }, listen), actions);
   }
 
   else if (item.kind === 'choice') {

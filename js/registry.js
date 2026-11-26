@@ -2,7 +2,8 @@
 // 结构化课程再在 content/<id>/course.json 放内容即可，不用改界面代码。
 //
 // kind:
-//   'external'   —— 现有独立 PWA，通过链接打开，进度留在原 App
+//   'embedded'   —— 复制进来的完整 App（app/apps/<id>/），使用家庭档案和加密内容包
+//   'external'   —— 外部 PWA，通过链接打开，进度留在原 App
 //   'structured' —— 内置课程，使用「级别/阶段 → 单元 → 活动 → 题目」引擎
 //   'mac'        —— 需要 Mac 的工具，打开方式待确认
 //   'planned'    —— 预留占位，暂不可添加
@@ -10,7 +11,7 @@
 export const COURSES = [
   {
     id: 'artikel',
-    kind: 'external',
+    kind: 'embedded',
     icon: 'books',
     color: '#34c759',
     lang: 'de',
@@ -21,17 +22,17 @@ export const COURSES = [
       en: 'der / die / das and word practice for Bavarian grades 4–5',
       de: 'der / die / das und Wörter lernen, Klasse 4–5 (Bayern)',
     },
-    url: 'https://leizhou-dev.github.io/ArtikelLernen/',
-    entries: [{ id: 'story', icon: 'bookOpen', title: { zh: '故事', en: 'Stories', de: 'Geschichten' }, path: '#geschichten' }],
-    plan: {
-      zh: '优先迁入：续学、答题和错题接入家庭档案。',
-      en: 'First to migrate: resume, quizzes and mistakes will use family profiles.',
-      de: 'Wird zuerst übernommen: Weiterlernen, Quiz und Fehler mit Familienprofilen.',
-    },
+    path: 'apps/artikel/',
+    entries: [
+      { id: 'kasten', icon: 'cards', title: { zh: '卡片盒', en: 'Card box', de: 'Karteikasten' }, path: '#kasten' },
+      { id: 'quiz', icon: 'target', title: { zh: '冠词测验', en: 'Article quiz', de: 'Artikel-Quiz' }, path: '#quiz' },
+      { id: 'story', icon: 'bookOpen', title: { zh: '故事', en: 'Stories', de: 'Geschichten' }, path: '#geschichten' },
+      { id: 'fehler', icon: 'repeat', title: { zh: '错词', en: 'Mistakes', de: 'Fehlerwörter' }, path: '#fehler' },
+    ],
   },
   {
     id: 'latein',
-    kind: 'external',
+    kind: 'embedded',
     icon: 'scroll',
     color: '#b23a22',
     lang: 'la',
@@ -42,13 +43,8 @@ export const COURSES = [
       en: 'Latin textbook lessons 1–11: flashcards, handwriting and quizzes',
       de: 'Lateinbuch Lektion 1–11: Karten, Handschrift und Quiz',
     },
-    url: 'https://leizhou-dev.github.io/LateinLernen/',
+    path: 'apps/latein/',
     entries: [],
-    plan: {
-      zh: '接入课次、词卡和练习进度；确认旧数据格式后再决定导入方式。',
-      en: 'Lessons, cards and practice progress will be connected; import method depends on the old data format.',
-      de: 'Lektionen, Karten und Übungsfortschritt werden angebunden; Import hängt vom alten Datenformat ab.',
-    },
   },
   {
     id: 'deutsch',

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#fff8ec"/>
+  <rect x="56" y="96" width="400" height="96" rx="40" fill="#2f6fde"/>
+  <rect x="56" y="208" width="400" height="96" rx="40" fill="#e0453a"/>
+  <rect x="56" y="320" width="400" height="96" rx="40" fill="#239b56"/>
+  <g font-family="Arial Rounded MT Bold, Helvetica, Arial, sans-serif" font-weight="700" font-size="64" fill="#fff" text-anchor="middle">
+    <text x="256" y="166">der</text>
+    <text x="256" y="278">die</text>
+    <text x="256" y="390">das</text>
+  </g>
+</svg>

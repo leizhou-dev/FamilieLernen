@@ -2,7 +2,8 @@
 // 课程内容只以加密文件 content.enc.json 发布（PBKDF2-SHA256 → AES-256-GCM）。
 // 每台设备输入一次密码，派生出的密钥保存在本机，以后自动解锁。
 
-const BUNDLE_URL = 'content.enc.json';
+// relativ zu dieser Datei, damit auch eingebaute Apps (apps/…) das Paket finden
+const BUNDLE_URL = new URL('../content.enc.json', import.meta.url).href;
 const KEY_STORE = 'familienlernen.key';
 let files = null; // 解密后的 { 'deutsch/course.json': {...}, ... }
 

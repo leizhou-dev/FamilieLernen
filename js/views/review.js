@@ -7,7 +7,7 @@ import { header } from './common.js';
 
 const itemRows = (entries) => entries.slice(0, 30).map((e) => row({
   icon: typeTile(e.activity.type, 30),
-  title: h('span', { lang: 'de' }, e.item.prompt || e.item.front || e.item.scenario || e.item.id),
+  title: h('span', { lang: 'de' }, e.item.answer && typeof e.item.prompt === 'object' ? e.item.answer : e.item.prompt || e.item.front || e.item.scenario || e.item.id),
   sub: `${tr(course(e.courseId).title)} · ${e.activity.title}`,
   attrs: { 'data-review-item': e.item.id },
 }));

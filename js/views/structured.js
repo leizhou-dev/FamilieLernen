@@ -33,7 +33,10 @@ export async function renderCourseHome(root, id) {
   const reg = course(id);
   const c = await loadCourse(id);
   const enrolled = enrolledIn(id);
-  const startLevel = S.enrollment(id)?.meta?.level || c.stages[0].id;
+  const levels = c.stages.filter((s) => s.kind !== 'track');
+  const tracks = c.stages.filter((s) => s.kind === 'track');
+  const saved = S.enrollment(id)?.meta?.level;
+  const startLevel = levels.some((s) => s.id === saved) ? saved : levels[0].id;
   const pos = S.progress(id).pos;
 
   put(root, 'append',
@@ -44,9 +47,13 @@ export async function renderCourseHome(root, id) {
       : null,
     !enrolled ? h('button', { type: 'button', class: 'primary big', 'data-add': id, onclick: () => S.addCourse(id, { level: startLevel }) }, ico('plus', 18, 2.4), t('common.add')) : null,
     enrolled ? group(t('course.startLevel'), [h('div', { class: 'seg-row' },
-      segmented(c.stages.map((s) => [s.id, s.code]), startLevel,
+      segmented(levels.map((s) => [s.id, s.code]), startLevel,
         (v) => { S.setCourseMeta(id, { level: v }); go(`#/s/${id}/stage/${v}`); }, 'data-level'))]) : null,
-    group(t('course.route'), c.stages.map((s) => row({
+    tracks.length ? group(t('course.tracks'), tracks.map((s) => row({
+      icon: iconTile(s.icon || 'bubble', 'var(--pink)', 40), title: tr(s.title),
+      sub: t('course.unitsCount', { n: s.units.length }), chev: true, href: `#/s/${id}/stage/${s.id}`, attrs: { 'data-stage': s.id },
+    }))) : null,
+    group(t('course.route'), levels.map((s) => row({
       icon: codeTile(s.code), title: tr(s.title),
       sub: s.units.length ? t('course.unitsCount', { n: s.units.length }) : t('common.pending'),
       detail: s.id === startLevel ? chip(t('course.startLevel'), 'accent') : null,
@@ -60,13 +67,21 @@ export async function renderStage(root, id, stageId) {
   const c = await loadCourse(id);
   const stage = c.stages.find((s) => s.id === stageId);
   if (!stage) return go(`#/s/${id}`);
-  put(root, 'append', pageHeader(`${stage.code} · ${tr(stage.title)}`, { leading: backLink(`#/s/${id}`, tr(course(id).title)), trailing: avatarButton() }));
+  const isTrack = stage.kind === 'track';
+  put(root, 'append', pageHeader(isTrack ? tr(stage.title) : `${stage.code} · ${tr(stage.title)}`, { leading: backLink(`#/s/${id}`, tr(course(id).title)), trailing: avatarButton() }),
+    stage.desc ? h('div', { class: 'card stage-desc' }, h('p', {}, tr(stage.desc))) : null);
   if (!stage.units.length) {
     put(root, 'append', emptyCard(t('course.noUnits'), 'stage'));
     return;
   }
   const units = await Promise.all(stage.units.map((u) => loadUnit(id, u.id)));
-  put(root, 'append', group(t('course.units'), units.map((u) => {
+  // 按 group 分组（保持原顺序，相邻的同组单元放在一起）
+  const runs = [];
+  for (const u of units) {
+    if (runs.length && runs.at(-1).group === (u.group || null)) runs.at(-1).units.push(u);
+    else runs.push({ group: u.group || null, units: [u] });
+  }
+  const unitRow = (u) => {
     const st = unitStats(id, u);
     const ready = unitHasContent(u);
     return row({
@@ -76,7 +91,8 @@ export async function renderStage(root, id, stageId) {
       chev: ready, href: `#/s/${id}/unit/${u.id}`,
       cls: 'unit-row' + (ready ? '' : ' disabled'), attrs: { 'data-unit': u.id },
     });
-  })));
+  };
+  put(root, 'append', runs.map((r, i) => group(r.group || (i === 0 ? t('course.units') : null), r.units.map(unitRow))));
 }
 
 export function emptyCard(text, kind) {
@@ -92,7 +108,7 @@ export async function renderUnit(root, id, unitId) {
   const pr = S.progress(id);
   put(root, 'append', pageHeader(u.title, {
     sub: u.internal ? chip(t('common.internal'), 'warn') : null,
-    leading: backLink(`#/s/${id}/stage/${stage.id}`, `${stage.code} · ${tr(stage.title)}`), trailing: avatarButton(),
+    leading: backLink(`#/s/${id}/stage/${stage.id}`, stage.kind === 'track' ? tr(stage.title) : `${stage.code} · ${tr(stage.title)}`), trailing: avatarButton(),
   }));
   if (!u.activities.length) { put(root, 'append', emptyCard(t('common.pending'), 'unit')); return; }
 

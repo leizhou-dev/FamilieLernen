@@ -5,7 +5,8 @@ import { go } from './ui.js';
 
 export function openExternal(c, path = '') {
   S.touchCourse(c.id);
-  S.save();
+  S.save(true);
+  if (c.kind === 'embedded') { location.href = c.path + path; return; } // 同一个 App 内打开
   window.open(c.url + path, '_blank', 'noopener');
 }
 
@@ -13,7 +14,7 @@ export function openExternal(c, path = '') {
 export function continueCourse(courseId) {
   const c = course(courseId);
   if (!c) return;
-  if (c.kind === 'external') return openExternal(c);
+  if (c.kind === 'external' || c.kind === 'embedded') return openExternal(c);
   if (c.kind === 'structured') {
     const pos = S.progress(courseId).pos;
     S.touchCourse(courseId);
@@ -32,4 +33,4 @@ export function whereLabel(courseId) {
 }
 
 export const courseHref = (c) => (c.kind === 'structured' ? `#/s/${c.id}` : `#/course/${c.id}`);
-export const kindLabel = (c) => t('kind.' + (c.kind === 'structured' ? 'native' : c.kind));
+export const kindLabel = (c) => t('kind.' + (c.kind === 'structured' || c.kind === 'embedded' ? 'native' : c.kind));
