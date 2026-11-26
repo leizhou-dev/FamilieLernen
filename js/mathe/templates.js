@@ -5,11 +5,12 @@ import begriffe from './t-begriffe.js';
 import halbschriftlich from './t-halbschriftlich.js';
 import punkt from './t-punkt.js';
 import umkehr from './t-umkehr.js';
-import { grade } from './grade.js';
+import { grade, setTemplateLookup } from './grade.js';
 
 export const TEMPLATES = [...zahlenraum, ...begriffe, ...halbschriftlich, ...punkt, ...umkehr];
 const BY_ID = new Map(TEMPLATES.map((t) => [t.id, t]));
 export const template = (id) => BY_ID.get(id);
+setTemplateLookup(template);
 
 /** Wissensbereiche (Klasse 4, Bayern) mit ihren Vorlagen und Stufen */
 export const SKILLS = [

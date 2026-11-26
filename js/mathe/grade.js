@@ -1,6 +1,9 @@
 // Mathe · Bewertung: Feld für Feld, Ergebnis- und Rechenweg-Punkte, Fehlerursachen-Tags.
 import { parseNum, apply } from './core.js';
-import { template } from './templates.js';
+
+// Vorlagen-Suche wird von templates.js gesetzt (keine zirkuläre Abhängigkeit)
+let template = () => null;
+export function setTemplateLookup(fn) { template = fn; }
 
 export const TAGS = {
   'tens-division-zero': { de: 'Zehnerzahl als Teiler: eine Null zu viel im Ergebnis', zh: '整十数除法的商多写一个 0' },
