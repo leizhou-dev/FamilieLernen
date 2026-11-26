@@ -15,6 +15,7 @@ export function continueCourse(courseId) {
   const c = course(courseId);
   if (!c) return;
   if (c.kind === 'external' || c.kind === 'embedded') return openExternal(c);
+  if (c.kind === 'mathe') { S.touchCourse(courseId); return go('#/mathe'); }
   if (c.kind === 'structured') {
     const pos = S.progress(courseId).pos;
     S.touchCourse(courseId);
@@ -32,5 +33,5 @@ export function whereLabel(courseId) {
   return tr(c.title);
 }
 
-export const courseHref = (c) => (c.kind === 'structured' ? `#/s/${c.id}` : `#/course/${c.id}`);
-export const kindLabel = (c) => t('kind.' + (c.kind === 'structured' || c.kind === 'embedded' ? 'native' : c.kind));
+export const courseHref = (c) => (c.kind === 'structured' ? `#/s/${c.id}` : c.kind === 'mathe' ? '#/mathe' : `#/course/${c.id}`);
+export const kindLabel = (c) => t('kind.' + (['structured', 'embedded', 'mathe'].includes(c.kind) ? 'native' : c.kind));

@@ -83,11 +83,18 @@ export const COURSES = [
   },
   {
     id: 'mathe',
-    kind: 'planned',
+    kind: 'mathe',
     icon: 'plusminus',
     color: '#0a84ff',
-    title: { zh: 'Mathe', en: 'Maths', de: 'Mathe' },
-    desc: { zh: '预留：数学（Grundschule / 5 年级）', en: 'Planned: maths', de: 'Geplant: Mathe' },
+    lang: 'de',
+    audience: 'kids',
+    path: '#/mathe',
+    title: { zh: 'Mathe 4 年级', en: 'Mathe Year 4', de: 'Mathe Klasse 4' },
+    desc: {
+      zh: '巴伐利亚 4 年级：10 万以内的数、运算词语、平方数、半笔算乘除、先乘除后加减、数字谜',
+      en: 'Bavaria Year 4: numbers to 100 000, operation words, square numbers, partial multiplication/division, order of operations, number riddles',
+      de: 'Klasse 4 (Bayern): Zahlenraum bis 100 000, Rechenbegriffe, Quadratzahlen, halbschriftlich rechnen, Punkt vor Strich, Zahlenrätsel',
+    },
   },
   {
     id: 'hsu',

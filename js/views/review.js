@@ -4,6 +4,8 @@ import { collectReview } from './play.js';
 import { typeTile } from './structured.js';
 import { course } from '../registry.js';
 import { header } from './common.js';
+import { matheWrongCount } from './mathe.js';
+import { iconTile } from '../ui.js';
 
 const itemRows = (entries) => entries.slice(0, 30).map((e) => row({
   icon: typeTile(e.activity.type, 30),
@@ -27,6 +29,7 @@ export async function renderReview(root) {
     header(t('nav.review')),
     section(t('review.wrong'), wrong.length, 'wrong', wrong, t('review.startWrong'), t('review.emptyWrong'), true),
     section(t('review.fav'), fav.length, 'fav', fav, t('review.startFav'), t('review.emptyFav'), false),
+    matheWrongCount() ? group('Mathe', [row({ icon: iconTile('plusminus', '#0a84ff', 30), title: t('m.wrong'), sub: t('m.wrongSub', { n: matheWrongCount() }), chev: true, href: '#/mathe/play/wrong', attrs: { 'data-review': 'mathe' } })]) : null,
     h('p', { class: 'group-footer' }, t('review.extNote')),
   );
 }

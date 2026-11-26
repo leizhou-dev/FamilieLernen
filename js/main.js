@@ -8,6 +8,7 @@ import { renderPlay, renderReviewPlay } from './views/play.js';
 import { renderReview } from './views/review.js';
 import { renderSettings } from './views/settings.js';
 import { renderNewProfile } from './views/profile-new.js';
+import { renderMatheHome, renderMatheSkill, renderMathePlay } from './views/mathe.js';
 import { avatarButton } from './views/common.js';
 import * as vault from './vault.js';
 
@@ -21,6 +22,9 @@ const ROUTES = [
   [/^\/play\/([\w-]+)\/([\w-]+)\/([\w-]+)$/, 'courses', renderPlay, true],
   [/^\/review$/, 'review', renderReview],
   [/^\/review\/(wrong|fav)$/, 'review', renderReviewPlay, true],
+  [/^\/mathe$/, 'courses', renderMatheHome],
+  [/^\/mathe\/skill\/([\w-]+)$/, 'courses', renderMatheSkill],
+  [/^\/mathe\/play\/([\w-]+)$/, 'courses', renderMathePlay, true],
   [/^\/settings$/, null, renderSettings],
   [/^\/profile\/new$/, null, renderNewProfile, true],
 ];

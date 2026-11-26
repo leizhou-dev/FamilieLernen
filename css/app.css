@@ -164,3 +164,53 @@ body.fullscreen .shell .sticky-bottom { bottom: calc(16px + env(safe-area-inset-
 .np-screen .segmented { margin-bottom: 4px; }
 .shake { animation: np-shake .35s; }
 @keyframes np-shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+/* ---------- Mathe ---------- */
+.m-card { padding: 20px 22px 22px; }
+.m-card .q-meta { justify-content: flex-start; flex-wrap: wrap; margin-bottom: 10px; }
+.m-prompt { white-space: pre-line; font-size: 19px; line-height: 1.5; margin: 0 0 14px; font-weight: 500; }
+.m-body { display: flex; flex-direction: column; gap: 12px; }
+.m-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.4; }
+.m-text { white-space: pre-wrap; }
+.m-in { width: calc(var(--w, 3) * 0.72em + 26px); min-height: 46px; padding: 6px 10px; text-align: center; font: 600 22px/1 var(--font); font-variant-numeric: tabular-nums; border: 0; border-radius: var(--r-sm); background: var(--bg-tert); box-shadow: inset 0 0 0 1.5px var(--sep); outline: none; color: var(--label); }
+.m-in:focus { box-shadow: inset 0 0 0 2.5px var(--accent); }
+.m-in.ok, .m-slot.ok, .m-choice.ok, .m-signed.ok { box-shadow: inset 0 0 0 2.5px var(--green); background: var(--green-soft); }
+.m-in.bad, .m-slot.bad, .m-choice.bad, .m-signed.bad { box-shadow: inset 0 0 0 2.5px var(--red); background: var(--red-soft); }
+.m-in:disabled { opacity: 1; -webkit-text-fill-color: var(--label); }
+.m-correct { font-size: 17px; font-weight: 700; color: var(--green); margin: 0 6px; }
+.m-choice { display: inline-flex; gap: 4px; padding: 3px; border-radius: 14px; background: var(--fill-2); }
+.m-choice button { min-width: 44px; min-height: 40px; border: 0; border-radius: 11px; background: transparent; font: 700 20px/1 var(--font); color: var(--label); padding: 0 10px; }
+.m-choice button.on { background: var(--bg-elev); color: var(--accent); box-shadow: 0 2px 6px rgba(0, 0, 0, .12); }
+.m-choice.long { display: flex; flex-direction: column; width: 100%; padding: 4px; }
+.m-choice.long button { font-size: 18px; font-weight: 600; text-align: left; padding: 12px 14px; min-height: 48px; }
+.m-signed { display: inline-flex; align-items: center; gap: 6px; border-radius: 14px; padding: 2px; }
+.m-sign { padding: 2px; }
+.m-sign button { min-width: 40px; min-height: 40px; font-size: 20px; font-weight: 700; padding: 0 8px; }
+.m-multi { display: flex; flex-wrap: wrap; gap: 8px; }
+.m-chip { min-width: 64px; min-height: 48px; border: 0; border-radius: 14px; background: var(--fill-2); font: 700 20px/1 var(--font); font-variant-numeric: tabular-nums; color: var(--label); padding: 0 14px; }
+.m-chip.on { background: var(--accent); color: var(--on-accent); }
+.m-chip:disabled { opacity: .35; }
+.m-chip.should { box-shadow: inset 0 0 0 2.5px var(--green); }
+.m-chip.on:not(.should):disabled { background: var(--red); opacity: .9; }
+.m-pick { margin-bottom: 4px; }
+.m-order { gap: 6px; }
+.m-slot { min-width: 82px; min-height: 48px; border: 0; border-radius: 12px; background: var(--bg-tert); box-shadow: inset 0 0 0 1.5px var(--sep); font: 700 19px/1 var(--font); font-variant-numeric: tabular-nums; color: var(--label); padding: 0 8px; }
+.m-split .m-head { font-weight: 700; font-size: 24px; }
+.m-rows { display: flex; flex-direction: column; gap: 10px; padding-left: 4px; border-left: 3px solid var(--accent-soft); }
+.m-sum, .m-final, .m-probe { padding-top: 4px; }
+.m-final { font-weight: 700; }
+.m-addrow { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; padding: 4px 0; }
+.m-actions { display: flex; gap: 10px; }
+.m-actions > * { flex: 1; }
+.m-hints .m-hint { margin: 8px 0; }
+.m-after { display: flex; flex-direction: column; gap: 12px; }
+.m-scores, .m-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.chip.okc { background: var(--green-soft); color: var(--green); }
+.m-explain-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.m-explain-head .segmented { min-width: 170px; }
+.m-explain-head .segmented button { min-height: 34px; padding: 6px 10px; }
+.m-explain { margin-top: 8px; }
+.m-steps { display: flex; flex-direction: column; gap: 4px; margin: 4px 0 8px; font-variant-numeric: tabular-nums; }
+.m-step { font-weight: 600; }
+.m-follow { margin: 0; }
+@media (max-width: 420px) { .m-line { font-size: 20px; } .m-in { font-size: 20px; } }

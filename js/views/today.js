@@ -4,6 +4,7 @@ import { t, tr, getLang } from '../i18n.js';
 import { h, go, put, ico, iconTile, group, row } from '../ui.js';
 import { continueCourse, whereLabel, courseHref, kindLabel } from '../nav.js';
 import { header, courseTile } from './common.js';
+import { matheWrongCount } from './mathe.js';
 
 const LOCALE = { zh: 'zh-CN', en: 'en-GB', de: 'de-DE' };
 
@@ -26,7 +27,7 @@ export function renderToday(root) {
   const mine = visibleCourses().filter((c) => enr[c.id] && !enr[c.id].hidden);
   const recentId = S.recentCourseId();
   const recent = recentId && enr[recentId] && !enr[recentId].hidden && !course(recentId)?.hidden ? course(recentId) : null;
-  const wrongCount = mine.filter((c) => c.kind === 'structured').reduce((n, c) => n + S.openWrong(c.id).length, 0);
+  const wrongCount = mine.filter((c) => c.kind === 'structured').reduce((n, c) => n + S.openWrong(c.id).length, 0) + matheWrongCount();
   const date = new Date().toLocaleDateString(LOCALE[getLang()], { weekday: 'long', day: 'numeric', month: 'long' });
 
   put(root, 'append',
