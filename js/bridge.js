@@ -14,6 +14,7 @@ export async function enter(courseId) {
     location.replace(FAMILY_HOME);
     return new Promise(() => {});
   }
+  if (!S.current()) { location.replace(FAMILY_HOME); return new Promise(() => {}); }
   const e = S.enrollment(courseId);
   if (!e || e.hidden) S.addCourse(courseId);
   S.touchCourse(courseId);

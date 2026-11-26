@@ -7,6 +7,7 @@ import { renderCourseHome, renderStage, renderUnit } from './views/structured.js
 import { renderPlay, renderReviewPlay } from './views/play.js';
 import { renderReview } from './views/review.js';
 import { renderSettings } from './views/settings.js';
+import { renderNewProfile } from './views/profile-new.js';
 import { avatarButton } from './views/common.js';
 import * as vault from './vault.js';
 
@@ -21,6 +22,7 @@ const ROUTES = [
   [/^\/review$/, 'review', renderReview],
   [/^\/review\/(wrong|fav)$/, 'review', renderReviewPlay, true],
   [/^\/settings$/, null, renderSettings],
+  [/^\/profile\/new$/, null, renderNewProfile, true],
 ];
 
 const TABS = [['today', 'house'], ['courses', 'books'], ['review', 'repeat']];
@@ -55,6 +57,7 @@ let renderSeq = 0;
 async function render() {
   const seq = ++renderSeq;
   const p = S.current();
+  if (!p) return firstProfile();
   setLang(p.uiLang);
   document.title = t('app.name');
   const raw = location.hash.replace(/^#/, '') || '/today';
@@ -79,8 +82,19 @@ async function render() {
 }
 
 /* ---------- 家庭密码（与 Latein lernen 相同的解锁页） ---------- */
+/* ---------- 第一次使用：先建一个档案 ---------- */
+function firstProfile() {
+  document.body.classList.add('fullscreen');
+  const view = h('div', { class: 'view' });
+  renderNewProfile(view, null, { first: true, onDone: () => { location.hash = '#/today'; render(); } });
+  appRoot.replaceChildren(shell);
+  screen.replaceChildren(view);
+  tabbar.replaceChildren();
+  edge.replaceChildren();
+}
+
 function unlockScreen(status) {
-  setLang(S.current().uiLang);
+  setLang(S.current()?.uiLang || S.deviceLang());
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   const err = h('p', { class: 'err', role: 'alert' });
   let card;

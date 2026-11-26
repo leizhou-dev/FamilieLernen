@@ -17,21 +17,33 @@ function makeProfile(name, avatar, color, uiLang = 'zh') {
   return { id: uid('p'), name, avatar, color, uiLang, explainLang: 'auto', createdAt: now() };
 }
 
+/** 设备语言 → 界面语言默认值 */
+export function deviceLang() {
+  const l = (navigator.language || '').toLowerCase();
+  return l.startsWith('zh') ? 'zh' : l.startsWith('de') ? 'de' : l.startsWith('en') ? 'en' : 'zh';
+}
+
+// 第一次打开时没有档案：和 Artikel lernen / Latein lernen 一样，由用户自己创建
 function defaults() {
-  const profiles = [
-    makeProfile('Kind 1', '🦊', COLORS[0]),
-    makeProfile('Kind 2', '🐼', COLORS[1]),
-    makeProfile('Ich', '🦉', COLORS[2]),
-  ];
-  return { schema: SCHEMA, lastProfileId: profiles[0].id, profiles, enroll: {}, progress: {} };
+  return { schema: SCHEMA, lastProfileId: null, profiles: [], enroll: {}, progress: {} };
 }
 
 function migrate(s) {
-  // 预留：以后 schema 升级在这里逐级迁移
   if (!s.schema) s.schema = SCHEMA;
   s.enroll ||= {};
   s.progress ||= {};
+  // 0.1–0.3 版会自动建三个默认档案（Kind 1 / Kind 2 / Ich）。从没用过的就去掉。
+  if (!s.noDefaults) {
+    const DEF = new Set(['Kind 1', 'Kind 2', 'Ich']);
+    const used = (id) => Object.keys(s.enroll[id] || {}).length || Object.keys(s.progress[id] || {}).length;
+    s.profiles = (s.profiles || []).filter((p) => !(DEF.has(p.name) && !used(p.id) && !hasEmbeddedProgress(p.id)));
+    s.noDefaults = true;
+  }
   return s;
+}
+
+function hasEmbeddedProgress(pid) {
+  try { return !!JSON.parse(localStorage.getItem('familie.artikel.v1') || 'null')?.data?.[pid]; } catch { return false; }
 }
 
 export function load() {
@@ -41,8 +53,8 @@ export function load() {
   } catch {
     state = defaults();
   }
-  if (!state.profiles.length) state = defaults();
-  if (!state.profiles.find((p) => p.id === state.lastProfileId)) state.lastProfileId = state.profiles[0].id;
+  state.noDefaults = true;
+  if (!state.profiles.find((p) => p.id === state.lastProfileId)) state.lastProfileId = state.profiles[0]?.id || null;
   save(true);
   return state;
 }
@@ -57,34 +69,34 @@ export const getState = () => state;
 
 /* ---------- 档案 ---------- */
 export const profiles = () => state.profiles;
-export const current = () => state.profiles.find((p) => p.id === state.lastProfileId) || state.profiles[0];
+export const current = () => state.profiles.find((p) => p.id === state.lastProfileId) || state.profiles[0] || null;
 export function setCurrent(id) { state.lastProfileId = id; save(); }
 export function updateProfile(id, patch) {
   const p = state.profiles.find((x) => x.id === id);
   if (p) Object.assign(p, patch);
   save();
 }
-export function addProfile(name) {
+export function addProfile(name, { avatar, color, uiLang } = {}) {
   const i = state.profiles.length;
-  const p = makeProfile(name, AVATARS[i % AVATARS.length], COLORS[i % COLORS.length], current()?.uiLang || 'zh');
+  const p = makeProfile(name, avatar || AVATARS[i % AVATARS.length], color || COLORS[i % COLORS.length], uiLang || current()?.uiLang || deviceLang());
   state.profiles.push(p);
+  state.lastProfileId = p.id;
   save();
   return p;
 }
 export function removeProfile(id) {
-  if (state.profiles.length <= 1) return false;
   state.profiles = state.profiles.filter((p) => p.id !== id);
   delete state.enroll[id];
   delete state.progress[id];
-  if (state.lastProfileId === id) state.lastProfileId = state.profiles[0].id;
+  if (state.lastProfileId === id) state.lastProfileId = state.profiles[0]?.id || null;
   save();
   return true;
 }
 
 /* ---------- 选课 ---------- */
 const enrollOf = (pid) => (state.enroll[pid] ||= {});
-export function enrollments(pid = current().id) { return enrollOf(pid); }
-export function enrollment(courseId, pid = current().id) { return enrollOf(pid)[courseId] || null; }
+export function enrollments(pid = current()?.id) { return enrollOf(pid); }
+export function enrollment(courseId, pid = current()?.id) { return enrollOf(pid)[courseId] || null; }
 export function addCourse(courseId, meta = {}, pid = current().id) {
   const e = enrollOf(pid);
   if (e[courseId]) { e[courseId].hidden = false; Object.assign(e[courseId].meta ||= {}, meta); }

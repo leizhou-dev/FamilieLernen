@@ -1,7 +1,7 @@
 import * as S from '../store.js';
 import { UI_LANGS } from '../locales.js';
 import { t } from '../i18n.js';
-import { h, go, put, sheet, avatar, confirmBox, promptBox, toast, group, row, segmented, ico, iconTile } from '../ui.js';
+import { h, go, put, sheet, avatar, confirmBox, toast, group, row, segmented, ico, iconTile } from '../ui.js';
 import { header } from './common.js';
 import { lock } from '../vault.js';
 import * as IMP from '../importer.js';
@@ -19,6 +19,9 @@ export function openSwitcher() {
       onClick: () => { S.setCurrent(p.id); close(); }, cls: p.id === cur.id ? 'row-on' : '', attrs: { 'data-profile': p.id },
     }))),
     group(null, [row({
+      icon: iconTile('plus', 'var(--green)', 30), title: t('settings.addProfile'), cls: 'row-accent',
+      onClick: () => { close(); go('#/profile/new'); }, attrs: { 'data-switch-add': '' },
+    }), row({
       icon: iconTile('gear', 'var(--gray)', 30), title: t('switch.manage'), chev: true,
       onClick: () => { close(); go('#/settings'); }, attrs: { 'data-settings': '' },
     })]));
@@ -61,12 +64,12 @@ export function renderSettings(root) {
       })),
       row({
         icon: iconTile('plus', 'var(--green)', 30), title: t('settings.addProfile'), cls: 'row-accent', attrs: { 'data-add-profile': '' },
-        onClick: async () => { const n = await promptBox(t('settings.addProfile'), t('settings.newProfileName')); if (n) S.setCurrent(S.addProfile(n).id); },
+        onClick: () => go('#/profile/new'),
       }),
-      S.profiles().length > 1 ? row({
+      row({
         icon: iconTile('trash', 'var(--red)', 30), title: t('settings.deleteProfile'), cls: 'row-destructive',
         onClick: async () => { if (await confirmBox(t('settings.deleteConfirm', { name: p.name }), { okText: t('common.delete'), danger: true })) S.removeProfile(p.id); },
-      }) : null,
+      }),
     ].filter(Boolean)),
     group(t('settings.backup'), [
       row({ icon: iconTile('share', 'var(--blue)', 30), title: t('settings.export'), chev: true, onClick: () => {
@@ -109,10 +112,11 @@ export async function openImport() {
     },
   });
 
-  const profileSelect = (def, attr) => {
+  const profileSelect = (def, attr, newName) => {
     const sel = h('select', { [attr]: '' },
       h('option', { value: '' }, t('imp.skip')),
-      S.profiles().map((p) => h('option', { value: p.id }, `${p.avatar} ${p.name}`)));
+      S.profiles().map((p) => h('option', { value: p.id }, `${p.avatar} ${p.name}`)),
+      newName ? h('option', { value: 'new' }, t('imp.newProfile', { name: newName })) : null);
     sel.value = def;
     return sel;
   };
@@ -125,7 +129,7 @@ export async function openImport() {
     found.artikel.forEach((a, i) => {
       const match = S.profiles().find((p) => p.name.trim().toLowerCase() === (a.name || '').trim().toLowerCase());
       const def = match ? match.id : found.artikel.length === 1 ? cur : (i === 0 ? cur : '');
-      const sel = profileSelect(def, 'data-import-artikel');
+      const sel = profileSelect(def, 'data-import-artikel', a.name);
       selects.push(() => sel.value && { kind: 'artikel', entry: a, pid: sel.value });
       const sm = IMP.artikelSummary(a.data);
       rows.push(row({ icon: iconTile('books', '#34c759', 30), title: t('imp.oldProfile', { name: `${a.avatar || ''} ${a.name}`.trim() }),
@@ -146,6 +150,11 @@ export async function openImport() {
       go.disabled = true;
       const done = [];
       for (const j of jobs) {
+        if (j.pid === 'new') {
+          const np = S.addProfile(j.entry.name, { avatar: j.entry.avatar || undefined, uiLang: S.current().uiLang });
+          j.pid = np.id;
+          S.setCurrent(cur);
+        }
         const name = S.profiles().find((p) => p.id === j.pid)?.name;
         if (j.kind === 'artikel') { IMP.importArtikel(j.entry, j.pid); done.push(`Artikel → ${name}`); }
         else { await IMP.importLatein(j.entry, j.pid); done.push(`Latein → ${name}`); }
