@@ -15,6 +15,7 @@ const TYPE = {
   writing: ['pencil', 'var(--orange)'],
   speaking: ['bubble', 'var(--pink)'],
   test: ['checkCircle', 'var(--red)'],
+  communication: ['bubble', 'var(--indigo, var(--purple))'],
 };
 export const typeTile = (type, size = 34) => iconTile(...(TYPE[type] || ['circle', 'var(--gray)']), size);
 export const typeIconName = (type) => (TYPE[type] || ['circle'])[0];
