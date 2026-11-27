@@ -7,6 +7,7 @@ import { h, go, put, toast, ico, chip, navBar, progressTrack, group, row } from 
 import { loadUnit, hasItems, findItems } from '../content.js';
 import { typeTile, typeIconName } from './structured.js';
 import { rewardPills, starGain } from './common.js';
+import { audioUrl } from '../vault.js';
 
 const GRADED = new Set(['card', 'recall', 'choice', 'input']);
 const norm = (s) => String(s).trim().replace(/\s+/g, ' ').replace(/[.!?。]+$/, '');
@@ -62,7 +63,14 @@ function stimulusBlock(activity, open) {
     h('summary', {}, typeTile(activity.type, 28), h('span', {}, activity.type === 'listening' ? t('type.listening') : t('play.text'))));
   if (st.text) box.append(h('p', { class: 'de-text', lang: 'de' }, st.text));
   if (activity.type === 'listening') {
-    if (st.audio) box.append(h('audio', { controls: true, src: st.audio, preload: 'none' }));
+    if (st.audio?.startsWith('enc:')) {
+      const audio = h('audio', { controls: true, preload: 'none', 'data-audio': '' });
+      const status = h('p', { class: 'muted small' }, t('play.audioLoading'));
+      box.append(audio, status);
+      audioUrl(st.audio.slice(4))
+        .then((u) => { audio.src = u; status.remove(); })
+        .catch(() => { status.textContent = t('play.audioOffline'); });
+    } else if (st.audio) box.append(h('audio', { controls: true, src: st.audio, preload: 'none' }));
     else if (st.transcript) {
       box.append(h('div', { class: 'listen-row' },
         h('button', { type: 'button', class: 'primary', 'data-tts': '', onclick: () => speak(st.transcript) }, ico('play', 18, 2.2), t('play.listen')),
@@ -191,6 +199,14 @@ function renderItem(item, activity, saved, answered) {
     };
     put(wrap, 'append', h('div', { class: 'question' }, meta, qMain(item.prompt)),
       h('label', { class: 'field' }, h('span', { class: 'field-label' }, t('play.yourAnswer')), ta), btn);
+  }
+
+  else if (item.kind === 'listen') {
+    // Hörtext: Original anhören (Transkript auf Wunsch), dann bestätigen – ohne Bewertung
+    const btn = h('button', { type: 'button', class: 'primary big', 'data-listened': '' }, ico('check', 20, 2.4), t('play.listened'));
+    btn.onclick = () => { btn.disabled = true; answered(null, '[listened]'); };
+    put(wrap, 'append', h('div', { class: 'question' }, meta, qMain(item.prompt || t('play.listenTask'))),
+      item.hint ? h('p', { class: 'muted small center' }, item.hint) : null, btn);
   }
 
   else if (item.kind === 'speak') {
